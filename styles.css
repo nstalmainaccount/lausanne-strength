@@ -1,0 +1,305 @@
+:root {
+  --navy: #0b2545;
+  --navy-light: #13315c;
+  --red: #b22234;
+  --bg: #f4f6fa;
+  --card: #ffffff;
+  --line: #d9dee7;
+  --text: #1a2235;
+  --muted: #6b7689;
+
+  --gold: #f5b301;
+  --silver: #9aa7b4;
+  --bronze: #c87b3b;
+  --green: #2e9e5b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ---------- Header ---------- */
+header.site {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+  color: #fff;
+  padding: 22px 16px 0;
+  text-align: center;
+  border-bottom: 5px solid var(--red);
+}
+
+header.site h1 {
+  margin: 0;
+  font-size: clamp(20px, 4vw, 34px);
+  letter-spacing: 2px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+header.site .sub {
+  margin: 4px 0 16px;
+  color: #b9c6dd;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* ---------- Tabs ---------- */
+nav.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+nav.tabs button {
+  background: transparent;
+  color: #c4d0e3;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+nav.tabs button:hover { color: #fff; }
+
+nav.tabs button.active {
+  color: #fff;
+  border-bottom-color: var(--red);
+}
+
+/* ---------- Layout ---------- */
+main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 22px 14px 60px;
+}
+
+.view { display: none; }
+.view.active { display: block; }
+
+/* ---------- Leaderboard table ---------- */
+.board-wrap {
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 2px 14px rgba(11, 37, 69, .08);
+  overflow-x: auto;
+}
+
+table.board {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+table.board thead th {
+  background: var(--navy);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 10px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+}
+
+table.board thead th.name-col,
+table.board tbody td.name-col { text-align: left; }
+
+table.board tbody td {
+  padding: 11px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+table.board tbody tr:hover { background: #eef2fa; }
+
+.rank {
+  font-weight: 800;
+  color: var(--muted);
+  width: 38px;
+}
+
+.player-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.si-cell { font-weight: 800; font-size: 15px; }
+
+.lift-cell { position: relative; }
+.lift-val { display: inline-flex; align-items: center; gap: 5px; }
+
+.no-data td { color: var(--muted); font-style: italic; }
+.no-data .dash { color: var(--line); }
+
+/* ---------- Stars ---------- */
+.star { font-size: 14px; line-height: 1; }
+.star.gold   { color: var(--gold);   text-shadow: 0 0 1px #9a6f00; }
+.star.silver { color: var(--silver); text-shadow: 0 0 1px #5f6b78; }
+.star.bronze { color: var(--bronze); text-shadow: 0 0 1px #7d4715; }
+.star.green  { color: var(--green);  text-shadow: 0 0 1px #176b38; }
+.star.big { font-size: 18px; }
+
+/* group tint on the rank cell */
+tr.g-gold   .rank { color: var(--gold); }
+tr.g-silver .rank { color: var(--silver); }
+tr.g-bronze .rank { color: var(--bronze); }
+tr.g-green  .rank { color: var(--green); }
+
+/* ---------- Legend ---------- */
+.legend {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 720px) {
+  .legend { grid-template-columns: 1fr 1fr; }
+}
+
+.legend .card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 14px rgba(11, 37, 69, .06);
+}
+
+.legend h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--navy);
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 8px;
+}
+
+.legend table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.legend td { padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.legend td:first-child { white-space: nowrap; font-weight: 700; }
+.legend td:last-child { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend tr:last-child td { border-bottom: none; }
+
+.tier-label { display: inline-flex; align-items: center; gap: 7px; }
+
+/* ---------- Workout view ---------- */
+.workout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 720px) {
+  .workout-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.wcard {
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 2px 14px rgba(11, 37, 69, .08);
+  overflow: hidden;
+  border-top: 6px solid var(--line);
+}
+.wcard.gold   { border-top-color: var(--gold); }
+.wcard.silver { border-top-color: var(--silver); }
+.wcard.bronze { border-top-color: var(--bronze); }
+.wcard.green  { border-top-color: var(--green); }
+
+.wcard h3 {
+  margin: 0;
+  padding: 14px 18px;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wcard .body { padding: 0 18px 18px; }
+
+.wcard textarea {
+  width: 100%;
+  min-height: 150px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  line-height: 1.5;
+}
+.wcard textarea:focus { outline: 2px solid var(--navy-light); border-color: transparent; }
+
+.wcard .display {
+  white-space: pre-wrap;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 60px;
+  color: var(--text);
+}
+.wcard .display.empty { color: var(--muted); font-style: italic; }
+
+.workout-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.workout-date {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  cursor: pointer;
+}
+.btn.primary { background: var(--red); color: #fff; }
+.btn.primary:hover { background: #8f1b29; }
+.btn.ghost { background: #e7ecf5; color: var(--navy); }
+.btn.ghost:hover { background: #d7deec; }
+
+.coach-note {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.saved-flash {
+  color: var(--green);
+  font-weight: 700;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.saved-flash.show { opacity: 1; }
+
+footer.site {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 20px;
+}

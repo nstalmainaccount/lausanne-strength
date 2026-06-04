@@ -1,0 +1,62 @@
+// Lausanne Football Weight Room — player data
+// Edit this file to update the leaderboard.
+// b = bench, s = squat, c = clean, bwt = body weight.
+// Leave a value as null if it hasn't been recorded yet — those players
+// are automatically pushed to the bottom of the board.
+// Strength Index (SI) is calculated automatically: SI = (b + s + c) / bwt
+
+const PLAYERS = [
+  { name: "Keon Cooper",            b: 315, s: 540, c: 290, bwt: 240 },
+  { name: "Michael Halkaides",      b: 200, s: 325, c: 165, bwt: 170 },
+  { name: "Tyrez Jenkins",          b: 175, s: 340, c: 195, bwt: 145 },
+  { name: "Rohan Laster",           b: 270, s: 430, c: 220, bwt: 303 },
+  { name: "Devon Mayes",            b: 235, s: 405, c: 210, bwt: 326 },
+  { name: "Maxwell Butler",         b: 265, s: 415, c: 230, bwt: 210 },
+  { name: "Kam Davis",              b: 240, s: 405, c: 205, bwt: 152 },
+  { name: "Adrian Stewart",         b: 265, s: 385, c: 225, bwt: 315 },
+  { name: "Ike Daniel",             b: 235, s: 405, c: 240, bwt: 175 },
+  { name: "Nolton Banks",           b: 235, s: 325, c: 180, bwt: 215 },
+  { name: "Chase Bogaurd",          b: 235, s: 435, c: 210, bwt: 298 },
+  { name: "Thomas Heaffner",        b: 260, s: 435, c: 260, bwt: 200 },
+  { name: "LB Britt",               b: 230, s: 440, c: 235, bwt: 185 },
+  { name: "AJ Webb",                b: 235, s: 410, c: 205, bwt: 220 },
+  { name: "Sam Klug",               b: 285, s: 435, c: 230, bwt: 275 },
+  { name: "Jaxon Ruth",             b: 290, s: 430, c: 230, bwt: 185 },
+  { name: "KJ Banks",               b: 325, s: 520, c: 240, bwt: 289 },
+  { name: "Landon Gunn",            b: 365, s: 570, c: 255, bwt: 295 },
+  { name: "Levi Swann",             b: 235, s: 360, c: 185, bwt: 205 },
+  { name: "Aidan Hardy",            b: 245, s: 365, c: 215, bwt: 266 },
+  { name: "Jordan Young",           b: 285, s: 385, c: 220, bwt: 313 },
+  { name: "Srbastian Williams (Gino)", b: 235, s: 315, c: 180, bwt: 156 },
+  { name: "Tate Moen",              b: 235, s: 335, c: 175, bwt: 148 },
+  { name: "Antonio Huntsman",       b: 335, s: 475, c: 255, bwt: 202 },
+  { name: "Joseph Proffit",         b: 290, s: 435, c: 235, bwt: 195 },
+  { name: "Pat Thompson",           b: 215, s: 370, c: 200, bwt: 150 },
+  { name: "Deuce Harper",           b: 300, s: 500, c: 250, bwt: 256 },
+  { name: "Tre Harper",             b: 225, s: 405, c: 210, bwt: 137 },
+  { name: "Cayden Williams",        b: 205, s: 365, c: 235, bwt: 195 },
+  { name: "Brennan Hulsey",         b: 255, s: 390, c: 300, bwt: 230 },
+  { name: "Knox Stout",             b: 175, s: 295, c: 170, bwt: 171 },
+  { name: "Calvin Murray",          b: 160, s: 295, c: 160, bwt: 151 },
+  { name: "Cole Nagoski (8)",       b: 125, s: 200, c: 110, bwt: 156 },
+  { name: "Sid (tr)",               b: 120, s: 185, c: 105, bwt: 217.4 },
+
+  // Players on the roster without recorded numbers yet
+  { name: "Hank Smith",             b: null, s: null, c: null, bwt: null },
+  { name: "Caleb Clowers",          b: null, s: null, c: null, bwt: null },
+  { name: "Ethan Clowers",          b: null, s: null, c: null, bwt: null },
+  { name: "Jacob Edwards",          b: null, s: null, c: null, bwt: null },
+  { name: "Blake Kelly",            b: null, s: null, c: null, bwt: null },
+  { name: "Elijah McGinister",      b: null, s: null, c: null, bwt: null },
+  { name: "Cash Thompson",          b: null, s: null, c: null, bwt: null },
+  { name: "Jayce Hayes",            b: null, s: null, c: null, bwt: null },
+  { name: "Monquez Riley",          b: null, s: null, c: null, bwt: null },
+  { name: "D.J. McNeil",            b: null, s: null, c: null, bwt: null },
+  { name: "Luke Flournoy",          b: null, s: null, c: null, bwt: null },
+  { name: "Vernon Flemming",        b: null, s: null, c: null, bwt: null },
+  { name: "Brady C",                b: null, s: null, c: null, bwt: null },
+  { name: "Logan Hughes",           b: null, s: null, c: null, bwt: null },
+  { name: "Lucas Rauch (8)",        b: null, s: null, c: null, bwt: null },
+  { name: "Luke Husley (8)",        b: null, s: null, c: null, bwt: null },
+  { name: "Ethan Whittaker (8)",    b: null, s: null, c: null, bwt: null },
+];

@@ -1,14 +1,24 @@
 /* ============================================================
    Lausanne Football Weight Room 2026
    Leaderboard + Today's Workout + Coach Edit Mode
+
+   Data is shared for everyone through /api/data (see api/data.js).
+   - Anyone who opens the site reads the latest saved numbers/workout.
+   - A coach unlocks edit mode with the password, makes changes, and
+     hits Publish — which saves to the shared store so every player
+     sees it on their next visit/refresh.
    ============================================================ */
 
 const EDIT_PASSWORD = "football123";
-const DATA_KEY = "lfwr-data-2026";       // coach edits to player numbers
-const WORKOUT_KEY = "lfwr-workout-2026";  // posted workouts
+const API_URL = "/api/data";
+const DRAFT_KEY = "lfwr-cache-2026";   // local cache / offline fallback
 const GROUPS = ["gold", "silver", "bronze", "green"];
 
 let editMode = false;
+let coachPassword = null;               // kept in memory only, for publishing
+// Shared state: players = { "Name": {b,s,c,bwt}, ... } overrides; workout = {...}
+let state = { players: {}, workout: {} };
+let storageConfigured = true;
 
 // ---- Tier definitions ----------------------------------------------------
 // Overall Strength Index (SI) = (bench + squat + clean) / body weight
@@ -18,24 +28,18 @@ function siTier(si) {
   if (si >= 4.0) return "bronze";
   return "green"; // developmental
 }
-
-// Bench ratio (bench / bodyweight)
 function benchTier(r) {
   if (r >= 1.5)  return "gold";
   if (r >= 1.35) return "silver";
   if (r >= 1.25) return "bronze";
   return "green";
 }
-
-// Squat ratio (squat / bodyweight)
 function squatTier(r) {
   if (r >= 2.4)  return "gold";
   if (r >= 2.0)  return "silver";
   if (r >= 1.75) return "bronze";
   return "green";
 }
-
-// Clean ratio (clean / bodyweight)
 function cleanTier(r) {
   if (r >= 1.33) return "gold";
   if (r >= 1.25) return "silver";
@@ -44,10 +48,7 @@ function cleanTier(r) {
 }
 
 const TIER_NAME = {
-  gold: "Gold",
-  silver: "Silver",
-  bronze: "Bronze",
-  green: "Developmental",
+  gold: "Gold", silver: "Silver", bronze: "Bronze", green: "Developmental",
 };
 
 function starFor(tier, big) {
@@ -58,25 +59,70 @@ function starFor(tier, big) {
   return span;
 }
 
-// ---- Player data + coach overrides --------------------------------------
-function loadOverrides() {
+// ---- Shared state load/save ---------------------------------------------
+async function loadState() {
   try {
-    return JSON.parse(localStorage.getItem(DATA_KEY)) || {};
+    const res = await fetch(API_URL, { cache: "no-store" });
+    const data = await res.json();
+    state = { players: data.players || {}, workout: data.workout || {} };
+    storageConfigured = data.configured !== false;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
   } catch (e) {
-    return {};
+    // Offline or API not reachable -> fall back to last known cache.
+    try {
+      const cached = JSON.parse(localStorage.getItem(DRAFT_KEY));
+      if (cached) state = { players: cached.players || {}, workout: cached.workout || {} };
+    } catch (_) { /* ignore */ }
   }
 }
 
-function saveOverride(name, field, value) {
-  const overrides = loadOverrides();
-  overrides[name] = overrides[name] || {};
-  overrides[name][field] = value;
-  localStorage.setItem(DATA_KEY, JSON.stringify(overrides));
+function cacheLocally() {
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
 }
 
-// Merge base roster (data.js) with any coach edits saved in this browser.
+async function publish() {
+  if (!coachPassword) coachPassword = EDIT_PASSWORD;
+  setPublishStatus("Publishing…", "");
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        password: coachPassword,
+        players: state.players,
+        workout: state.workout,
+      }),
+    });
+    if (res.status === 401) {
+      setPublishStatus("Wrong password — couldn't publish.", "err");
+      return false;
+    }
+    if (res.status === 503) {
+      setPublishStatus("Saved on this device, but the shared store isn't set up yet.", "err");
+      return false;
+    }
+    if (!res.ok) {
+      setPublishStatus("Couldn't publish (server error).", "err");
+      return false;
+    }
+    setPublishStatus("✓ Published — everyone will see it on refresh.", "ok");
+    return true;
+  } catch (e) {
+    setPublishStatus("Saved on this device, but couldn't reach the server.", "err");
+    return false;
+  }
+}
+
+function setPublishStatus(msg, kind) {
+  const el = document.getElementById("publish-status");
+  if (!el) return;
+  el.textContent = msg;
+  el.className = "publish-status " + (kind || "");
+}
+
+// ---- Player data (roster + shared overrides) ----------------------------
 function getPlayers() {
-  const overrides = loadOverrides();
+  const overrides = state.players || {};
   return PLAYERS.map((p) => {
     const o = overrides[p.name] || {};
     const merged = {
@@ -98,6 +144,12 @@ function getPlayers() {
     if (!a.hasData && !b.hasData) return a.name.localeCompare(b.name);
     return b.si - a.si;
   });
+}
+
+function setOverride(name, field, value) {
+  state.players[name] = state.players[name] || {};
+  state.players[name][field] = value;
+  cacheLocally();
 }
 
 // ---- Leaderboard rendering ----------------------------------------------
@@ -128,7 +180,6 @@ function liftInputCell(player, field, bwt, tierFn) {
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") input.blur(); });
   wrap.append(input);
 
-  // live star preview (only meaningful when both this value and bwt exist)
   if (tierFn && player[field] != null && bwt != null && bwt > 0) {
     wrap.append(starFor(tierFn(player[field] / bwt), false));
   }
@@ -144,8 +195,9 @@ function onEditChange(e) {
     input.value = "";
     return;
   }
-  saveOverride(input.dataset.name, input.dataset.field, value);
+  setOverride(input.dataset.name, input.dataset.field, value);
   renderBoard(); // recompute SI, re-sort ranks, refresh all stars
+  setPublishStatus("Unpublished changes — hit Publish to share with everyone.", "warn");
 }
 
 function renderBoard() {
@@ -157,7 +209,6 @@ function renderBoard() {
   players.forEach((p) => {
     const tr = document.createElement("tr");
 
-    // No data + not editing -> a "needs numbers" row at the bottom.
     if (!p.hasData && !editMode) {
       tr.className = "no-data";
       tr.innerHTML = `
@@ -173,13 +224,11 @@ function renderBoard() {
     if (ranked) rank += 1;
     tr.className = ranked ? "g-" + siTier(p.si) : "no-data";
 
-    // rank
     const tdRank = document.createElement("td");
     tdRank.className = "rank";
     tdRank.textContent = ranked ? rank : "–";
     tr.append(tdRank);
 
-    // name + group star
     const tdName = document.createElement("td");
     tdName.className = "name-col";
     const nameWrap = document.createElement("span");
@@ -203,7 +252,6 @@ function renderBoard() {
       tr.append(tdBwt);
     }
 
-    // SI
     const tdSi = document.createElement("td");
     tdSi.className = "si-cell";
     if (ranked) {
@@ -238,20 +286,12 @@ function setupTabs() {
 }
 
 // ---- Today's Workout -----------------------------------------------------
-function loadWorkout() {
-  try {
-    return JSON.parse(localStorage.getItem(WORKOUT_KEY)) || {};
-  } catch (e) {
-    return {};
-  }
-}
-
 function renderWorkout() {
-  const data = loadWorkout();
+  const data = state.workout || {};
   document.getElementById("workout-date").textContent =
     data.date ? "Workout for " + data.date : "Today's Workout";
   document.getElementById("workout-note").textContent = editMode
-    ? "Type each group's lift of the day, then Save & Post."
+    ? "Type each group's lift of the day, then Publish."
     : "";
 
   const grid = document.getElementById("workout-grid");
@@ -271,9 +311,13 @@ function renderWorkout() {
 
     if (editMode) {
       const ta = document.createElement("textarea");
-      ta.id = "ta-" + g;
       ta.value = data[g] || "";
       ta.placeholder = "Lift of the day for the " + TIER_NAME[g] + " group…";
+      ta.addEventListener("input", () => {
+        state.workout[g] = ta.value;
+        cacheLocally();
+        setPublishStatus("Unpublished changes — hit Publish to share with everyone.", "warn");
+      });
       body.append(ta);
     } else {
       const disp = document.createElement("div");
@@ -290,35 +334,44 @@ function renderWorkout() {
     card.append(body);
     grid.append(card);
   });
+}
 
-  const actions = document.getElementById("workout-actions");
-  actions.innerHTML = "";
-  if (editMode) {
-    const save = document.createElement("button");
-    save.className = "btn primary";
-    save.textContent = "Save & Post Workout";
-    save.addEventListener("click", saveWorkout);
-    actions.append(save);
+async function publishWorkout() {
+  // stamp the date when a workout is posted
+  const hasText = GROUPS.some((g) => (state.workout[g] || "").trim());
+  if (hasText) {
+    state.workout.date = new Date().toLocaleDateString(undefined, {
+      weekday: "long", month: "long", day: "numeric", year: "numeric",
+    });
   }
+  cacheLocally();
+  const ok = await publish();
+  if (ok) renderWorkout();
 }
 
-function saveWorkout() {
-  const data = loadWorkout();
-  data.date = new Date().toLocaleDateString(undefined, {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
-  });
-  GROUPS.forEach((g) => {
-    const ta = document.getElementById("ta-" + g);
-    if (ta) data[g] = ta.value;
-  });
-  localStorage.setItem(WORKOUT_KEY, JSON.stringify(data));
-  renderWorkout();
-  const flash = document.getElementById("save-flash");
-  flash.classList.add("show");
-  setTimeout(() => flash.classList.remove("show"), 1800);
+// ---- Coach tools / edit toggle (password gated) --------------------------
+function renderCoachTools() {
+  const bar = document.getElementById("coach-tools");
+  bar.innerHTML = "";
+  if (!editMode) { bar.classList.remove("show"); return; }
+  bar.classList.add("show");
+
+  const publishBtn = document.createElement("button");
+  publishBtn.className = "btn primary";
+  publishBtn.textContent = "Publish to everyone";
+  publishBtn.addEventListener("click", publishWorkout);
+  bar.append(publishBtn);
+
+  const status = document.createElement("span");
+  status.id = "publish-status";
+  status.className = "publish-status";
+  if (!storageConfigured) {
+    status.textContent = "Shared store not set up yet — edits won't reach players until it is.";
+    status.classList.add("warn");
+  }
+  bar.append(status);
 }
 
-// ---- Edit mode toggle (password gated) -----------------------------------
 function setupEditToggle() {
   const btn = document.getElementById("edit-toggle");
   const banner = document.getElementById("edit-banner");
@@ -326,27 +379,30 @@ function setupEditToggle() {
   btn.addEventListener("click", () => {
     if (editMode) {
       editMode = false;
+      coachPassword = null;
     } else {
       const entry = prompt("Enter coach password to unlock edit mode:");
-      if (entry === null) return; // cancelled
-      if (entry !== EDIT_PASSWORD) {
-        alert("Incorrect password.");
-        return;
-      }
+      if (entry === null) return;
+      if (entry !== EDIT_PASSWORD) { alert("Incorrect password."); return; }
       editMode = true;
+      coachPassword = entry;
     }
     btn.textContent = editMode ? "🔓 Lock Edit Mode" : "🔒 Unlock Edit Mode";
     btn.classList.toggle("on", editMode);
     banner.classList.toggle("show", editMode);
+    renderCoachTools();
     renderBoard();
     renderWorkout();
   });
 }
 
 // ---- Boot ----------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   setupTabs();
   setupEditToggle();
+  renderBoard();      // show roster immediately
+  renderWorkout();
+  await loadState();  // then fill in shared numbers/workout
   renderBoard();
   renderWorkout();
 });

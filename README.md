@@ -14,19 +14,23 @@ group.
     compares to the player's body weight.
   - Players without recorded numbers are listed at the bottom.
   - A legend at the bottom explains every level.
-- **Today's Workout tab** — coaches tap **Edit Workout** to post the lift of the
-  day for the Gold, Silver, Bronze, and Developmental groups.
+- **Today's Workout tab** — coaches post the lift of the day for the Gold,
+  Silver, Bronze, and Developmental groups.
+- **Coach Edit Mode** — click **🔒 Unlock Edit Mode**, enter the password
+  (`football123`), and the Bench / Squat / Clean / Body Weight values become
+  editable. The Strength Index, ranking order, and all stars recalculate live as
+  you type. Click **Publish to everyone** to save — the changes (and posted
+  workouts) are shared with every player through a small serverless API
+  (`api/data.js`), so everyone sees the same leaderboard.
 
 ## Star / group levels
 
 | Star | Strength Index | Bench (×bwt) | Squat (×bwt) | Clean (×bwt) |
 |------|----------------|--------------|--------------|--------------|
 | 🟡 Gold | 5.5+ | 1.50+ | 2.40+ | 1.33+ |
-| ⚪ Silver | 4.6–5.4 | 1.35–1.49 | 2.00–2.20 | — |
-| 🟤 Bronze | 4.0–4.5 | 1.25–1.34 | 1.75–1.99 | 1.25–1.32 |
-| 🟢 Developmental | under 4.0 | 1.24 & under | under 1.75 | 1.24 & under |
-
-> Per your scale, the **Clean** uses Gold / Bronze / Developmental only.
+| ⚪ Silver | 4.6–5.4 | 1.35–1.49 | 2.00–2.20 | 1.25–1.32 |
+| 🟤 Bronze | 4.0–4.5 | 1.25–1.34 | 1.75–1.99 | 1.00–1.24 |
+| 🟢 Developmental | under 4.0 | 1.24 & under | under 1.75 | under 1.00 |
 
 ## Updating player data
 
@@ -42,15 +46,19 @@ all stars recalculate automatically — no other changes needed.
 
 ## Running / hosting
 
-It's plain HTML/CSS/JS — no build step.
+The front end is plain HTML/CSS/JS. Shared saving uses one serverless function
+(`api/data.js`) plus a small key-value store, which is why it's deployed on
+**Vercel**. See **[DEPLOY.md](DEPLOY.md)** for the full step-by-step.
 
-- **Locally:** open `index.html` in a browser, or run `python3 -m http.server`
-  and visit <http://localhost:8000>.
-- **Hosting:** drop these files on any static host (GitHub Pages, Netlify, etc.).
+- **Live editing for everyone:** a coach edits + clicks *Publish to everyone*,
+  the data is written to a shared store, and every player sees it.
+- **Offline / pre-setup:** if the store isn't reachable, the site still shows the
+  last data it loaded (cached in the browser) and tells the coach edits weren't
+  shared yet.
 
-## Note on "Today's Workout"
+## Files
 
-The posted workout is currently saved in the **browser** it was entered on
-(via `localStorage`). That's perfect for the coach's phone/laptop showing it in
-the weight room. If you want every player to see the same posted workout from
-their own phones, that needs a small shared backend — easy to add as a next step.
+- `index.html`, `styles.css` — the page
+- `data.js` — the roster + seed numbers (edit to add/remove players)
+- `app.js` — leaderboard, stars, edit mode, publishing
+- `api/data.js` — the shared read/write API (runs on Vercel)

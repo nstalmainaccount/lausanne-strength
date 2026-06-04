@@ -14,7 +14,15 @@
       <button class="active" data-target="view-board">Leaderboard</button>
       <button data-target="view-workout">Today's Workout</button>
     </nav>
+    <div class="edit-bar">
+      <button id="edit-toggle" class="edit-toggle">🔒 Unlock Edit Mode</button>
+    </div>
   </header>
+
+  <div id="edit-banner" class="edit-banner">
+    ✏️ Coach Edit Mode is ON — change Bench / Squat / Clean / Body Wt below and
+    the Strength Index, rank, and stars update automatically.
+  </div>
 
   <main>
     <!-- ============ LEADERBOARD ============ -->
@@ -75,8 +83,9 @@
           <h3>★ Clean — × Body Weight</h3>
           <table>
             <tr><td><span class="tier-label"><span class="star gold">★</span> Gold</span></td><td>1.33× and up</td></tr>
-            <tr><td><span class="tier-label"><span class="star bronze">★</span> Bronze</span></td><td>1.25× – 1.32×</td></tr>
-            <tr><td><span class="tier-label"><span class="star green">★</span> Developmental</span></td><td>1.24× and under</td></tr>
+            <tr><td><span class="tier-label"><span class="star silver">★</span> Silver</span></td><td>1.25× – 1.32×</td></tr>
+            <tr><td><span class="tier-label"><span class="star bronze">★</span> Bronze</span></td><td>1.00× – 1.24×</td></tr>
+            <tr><td><span class="tier-label"><span class="star green">★</span> Developmental</span></td><td>Under 1.00×</td></tr>
           </table>
         </div>
       </div>
@@ -87,59 +96,10 @@
       <div class="workout-bar">
         <span class="workout-date" id="workout-date">Today's Workout</span>
         <span class="saved-flash" id="save-flash">✓ Saved</span>
-        <span class="coach-note">Coaches: tap “Edit Workout” to post the lift of the day.</span>
+        <span class="coach-note" id="workout-note"></span>
       </div>
-
-      <!-- Player-facing display -->
-      <div id="workout-display">
-        <div class="workout-grid">
-          <div class="wcard gold">
-            <h3><span class="star gold big">★</span> Gold Group</h3>
-            <div class="body"><div class="display empty" id="disp-gold"></div></div>
-          </div>
-          <div class="wcard silver">
-            <h3><span class="star silver big">★</span> Silver Group</h3>
-            <div class="body"><div class="display empty" id="disp-silver"></div></div>
-          </div>
-          <div class="wcard bronze">
-            <h3><span class="star bronze big">★</span> Bronze Group</h3>
-            <div class="body"><div class="display empty" id="disp-bronze"></div></div>
-          </div>
-          <div class="wcard green">
-            <h3><span class="star green big">★</span> Developmental Group</h3>
-            <div class="body"><div class="display empty" id="disp-green"></div></div>
-          </div>
-        </div>
-        <div style="text-align:center;margin-top:20px;">
-          <button class="btn primary" id="edit-workout">Edit Workout</button>
-        </div>
-      </div>
-
-      <!-- Coach editor -->
-      <div id="workout-edit" style="display:none;">
-        <div class="workout-grid">
-          <div class="wcard gold">
-            <h3><span class="star gold big">★</span> Gold Group</h3>
-            <div class="body"><textarea id="ta-gold" placeholder="Lift of the day for the Gold group…"></textarea></div>
-          </div>
-          <div class="wcard silver">
-            <h3><span class="star silver big">★</span> Silver Group</h3>
-            <div class="body"><textarea id="ta-silver" placeholder="Lift of the day for the Silver group…"></textarea></div>
-          </div>
-          <div class="wcard bronze">
-            <h3><span class="star bronze big">★</span> Bronze Group</h3>
-            <div class="body"><textarea id="ta-bronze" placeholder="Lift of the day for the Bronze group…"></textarea></div>
-          </div>
-          <div class="wcard green">
-            <h3><span class="star green big">★</span> Developmental Group</h3>
-            <div class="body"><textarea id="ta-green" placeholder="Lift of the day for the Developmental group…"></textarea></div>
-          </div>
-        </div>
-        <div style="text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;">
-          <button class="btn primary" id="save-workout">Save &amp; Post</button>
-          <button class="btn ghost" id="cancel-workout">Cancel</button>
-        </div>
-      </div>
+      <div class="workout-grid" id="workout-grid"></div>
+      <div id="workout-actions" style="text-align:center;margin-top:20px;"></div>
     </section>
   </main>
 

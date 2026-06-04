@@ -48,6 +48,53 @@ header.site .sub {
   text-transform: uppercase;
 }
 
+/* ---------- Edit toggle ---------- */
+.edit-bar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+.edit-toggle {
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  cursor: pointer;
+}
+.edit-toggle:hover { background: rgba(255, 255, 255, .22); }
+.edit-toggle.on { background: var(--red); border-color: var(--red); }
+
+header.site { position: relative; }
+
+.edit-banner {
+  display: none;
+  background: #fff4d6;
+  color: #7a5c00;
+  border-bottom: 1px solid #e6cf8a;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+}
+.edit-banner.show { display: block; }
+
+.edit-input {
+  width: 64px;
+  padding: 6px 6px;
+  border: 1px solid var(--navy-light);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.edit-input:focus { outline: 2px solid var(--red); border-color: transparent; }
+.lift-cell.editing .lift-val { gap: 6px; }
+
 /* ---------- Tabs ---------- */
 nav.tabs {
   display: flex;

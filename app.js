@@ -1,7 +1,14 @@
 /* ============================================================
    Lausanne Football Weight Room 2026
-   Leaderboard + Today's Workout logic
+   Leaderboard + Today's Workout + Coach Edit Mode
    ============================================================ */
+
+const EDIT_PASSWORD = "football123";
+const DATA_KEY = "lfwr-data-2026";       // coach edits to player numbers
+const WORKOUT_KEY = "lfwr-workout-2026";  // posted workouts
+const GROUPS = ["gold", "silver", "bronze", "green"];
+
+let editMode = false;
 
 // ---- Tier definitions ----------------------------------------------------
 // Overall Strength Index (SI) = (bench + squat + clean) / body weight
@@ -28,10 +35,11 @@ function squatTier(r) {
   return "green";
 }
 
-// Clean ratio (clean / bodyweight) — coach's scale uses gold / bronze / dev
+// Clean ratio (clean / bodyweight)
 function cleanTier(r) {
   if (r >= 1.33) return "gold";
-  if (r >= 1.25) return "bronze";
+  if (r >= 1.25) return "silver";
+  if (r >= 1.0)  return "bronze";
   return "green";
 }
 
@@ -50,15 +58,41 @@ function starFor(tier, big) {
   return span;
 }
 
-// ---- Build the leaderboard ----------------------------------------------
-function computeRows() {
+// ---- Player data + coach overrides --------------------------------------
+function loadOverrides() {
+  try {
+    return JSON.parse(localStorage.getItem(DATA_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveOverride(name, field, value) {
+  const overrides = loadOverrides();
+  overrides[name] = overrides[name] || {};
+  overrides[name][field] = value;
+  localStorage.setItem(DATA_KEY, JSON.stringify(overrides));
+}
+
+// Merge base roster (data.js) with any coach edits saved in this browser.
+function getPlayers() {
+  const overrides = loadOverrides();
   return PLAYERS.map((p) => {
+    const o = overrides[p.name] || {};
+    const merged = {
+      name: p.name,
+      b: o.b !== undefined ? o.b : p.b,
+      s: o.s !== undefined ? o.s : p.s,
+      c: o.c !== undefined ? o.c : p.c,
+      bwt: o.bwt !== undefined ? o.bwt : p.bwt,
+    };
     const hasData =
-      p.b != null && p.s != null && p.c != null && p.bwt != null && p.bwt > 0;
-    const si = hasData ? (p.b + p.s + p.c) / p.bwt : null;
-    return { ...p, hasData, si };
+      merged.b != null && merged.s != null &&
+      merged.c != null && merged.bwt != null && merged.bwt > 0;
+    merged.hasData = hasData;
+    merged.si = hasData ? (merged.b + merged.s + merged.c) / merged.bwt : null;
+    return merged;
   }).sort((a, b) => {
-    // Players with data first, ranked by SI descending.
     if (a.hasData && !b.hasData) return -1;
     if (!a.hasData && b.hasData) return 1;
     if (!a.hasData && !b.hasData) return a.name.localeCompare(b.name);
@@ -66,7 +100,8 @@ function computeRows() {
   });
 }
 
-function liftCell(value, bwt, tierFn) {
+// ---- Leaderboard rendering ----------------------------------------------
+function liftDisplayCell(value, bwt, tierFn) {
   const td = document.createElement("td");
   td.className = "lift-cell";
   const wrap = document.createElement("span");
@@ -77,16 +112,53 @@ function liftCell(value, bwt, tierFn) {
   return td;
 }
 
+function liftInputCell(player, field, bwt, tierFn) {
+  const td = document.createElement("td");
+  td.className = "lift-cell editing";
+  const wrap = document.createElement("span");
+  wrap.className = "lift-val";
+
+  const input = document.createElement("input");
+  input.type = "number";
+  input.className = "edit-input";
+  input.value = player[field] != null ? player[field] : "";
+  input.dataset.name = player.name;
+  input.dataset.field = field;
+  input.addEventListener("change", onEditChange);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") input.blur(); });
+  wrap.append(input);
+
+  // live star preview (only meaningful when both this value and bwt exist)
+  if (tierFn && player[field] != null && bwt != null && bwt > 0) {
+    wrap.append(starFor(tierFn(player[field] / bwt), false));
+  }
+  td.append(wrap);
+  return td;
+}
+
+function onEditChange(e) {
+  const input = e.target;
+  const raw = input.value.trim();
+  const value = raw === "" ? null : Number(raw);
+  if (raw !== "" && (Number.isNaN(value) || value < 0)) {
+    input.value = "";
+    return;
+  }
+  saveOverride(input.dataset.name, input.dataset.field, value);
+  renderBoard(); // recompute SI, re-sort ranks, refresh all stars
+}
+
 function renderBoard() {
-  const rows = computeRows();
+  const players = getPlayers();
   const tbody = document.getElementById("board-body");
   tbody.innerHTML = "";
 
   let rank = 0;
-  rows.forEach((p) => {
+  players.forEach((p) => {
     const tr = document.createElement("tr");
 
-    if (!p.hasData) {
+    // No data + not editing -> a "needs numbers" row at the bottom.
+    if (!p.hasData && !editMode) {
       tr.className = "no-data";
       tr.innerHTML = `
         <td class="rank">–</td>
@@ -97,14 +169,14 @@ function renderBoard() {
       return;
     }
 
-    rank += 1;
-    const tier = siTier(p.si);
-    tr.className = "g-" + tier;
+    const ranked = p.hasData;
+    if (ranked) rank += 1;
+    tr.className = ranked ? "g-" + siTier(p.si) : "no-data";
 
     // rank
     const tdRank = document.createElement("td");
     tdRank.className = "rank";
-    tdRank.textContent = rank;
+    tdRank.textContent = ranked ? rank : "–";
     tr.append(tdRank);
 
     // name + group star
@@ -112,26 +184,34 @@ function renderBoard() {
     tdName.className = "name-col";
     const nameWrap = document.createElement("span");
     nameWrap.className = "player-name";
-    nameWrap.append(starFor(tier, true));
+    if (ranked) nameWrap.append(starFor(siTier(p.si), true));
     nameWrap.append(document.createTextNode(p.name));
     tdName.append(nameWrap);
     tr.append(tdName);
 
-    // lifts with per-lift stars
-    tr.append(liftCell(p.b, p.bwt, benchTier));
-    tr.append(liftCell(p.s, p.bwt, squatTier));
-    tr.append(liftCell(p.c, p.bwt, cleanTier));
-
-    // bodyweight
-    const tdBwt = document.createElement("td");
-    tdBwt.textContent = p.bwt;
-    tr.append(tdBwt);
+    if (editMode) {
+      tr.append(liftInputCell(p, "b", p.bwt, p.hasData ? benchTier : null));
+      tr.append(liftInputCell(p, "s", p.bwt, p.hasData ? squatTier : null));
+      tr.append(liftInputCell(p, "c", p.bwt, p.hasData ? cleanTier : null));
+      tr.append(liftInputCell(p, "bwt", null, null));
+    } else {
+      tr.append(liftDisplayCell(p.b, p.bwt, benchTier));
+      tr.append(liftDisplayCell(p.s, p.bwt, squatTier));
+      tr.append(liftDisplayCell(p.c, p.bwt, cleanTier));
+      const tdBwt = document.createElement("td");
+      tdBwt.textContent = p.bwt;
+      tr.append(tdBwt);
+    }
 
     // SI
     const tdSi = document.createElement("td");
     tdSi.className = "si-cell";
-    tdSi.append(starFor(tier, false));
-    tdSi.append(document.createTextNode(" " + p.si.toFixed(2)));
+    if (ranked) {
+      tdSi.append(starFor(siTier(p.si), false));
+      tdSi.append(document.createTextNode(" " + p.si.toFixed(2)));
+    } else {
+      tdSi.append(document.createTextNode("—"));
+    }
     tr.append(tdSi);
 
     tbody.append(tr);
@@ -157,10 +237,7 @@ function setupTabs() {
   });
 }
 
-// ---- Today's Workout (saved in the browser) ------------------------------
-const GROUPS = ["gold", "silver", "bronze", "green"];
-const WORKOUT_KEY = "lfwr-workout-2026";
-
+// ---- Today's Workout -----------------------------------------------------
 function loadWorkout() {
   try {
     return JSON.parse(localStorage.getItem(WORKOUT_KEY)) || {};
@@ -169,70 +246,107 @@ function loadWorkout() {
   }
 }
 
-function saveWorkout(data) {
-  localStorage.setItem(WORKOUT_KEY, JSON.stringify(data));
-}
-
 function renderWorkout() {
   const data = loadWorkout();
-  const dateEl = document.getElementById("workout-date");
-  dateEl.textContent = data.date
-    ? "Workout for " + data.date
-    : "Today's Workout";
+  document.getElementById("workout-date").textContent =
+    data.date ? "Workout for " + data.date : "Today's Workout";
+  document.getElementById("workout-note").textContent = editMode
+    ? "Type each group's lift of the day, then Save & Post."
+    : "";
+
+  const grid = document.getElementById("workout-grid");
+  grid.innerHTML = "";
 
   GROUPS.forEach((g) => {
-    document.getElementById("disp-" + g).textContent = "";
-    const disp = document.getElementById("disp-" + g);
-    const ta = document.getElementById("ta-" + g);
-    const text = (data[g] || "").trim();
-    ta.value = data[g] || "";
-    if (text) {
-      disp.textContent = text;
-      disp.classList.remove("empty");
+    const card = document.createElement("div");
+    card.className = "wcard " + g;
+
+    const h = document.createElement("h3");
+    h.append(starFor(g, true));
+    h.append(document.createTextNode(" " + TIER_NAME[g] + " Group"));
+    card.append(h);
+
+    const body = document.createElement("div");
+    body.className = "body";
+
+    if (editMode) {
+      const ta = document.createElement("textarea");
+      ta.id = "ta-" + g;
+      ta.value = data[g] || "";
+      ta.placeholder = "Lift of the day for the " + TIER_NAME[g] + " group…";
+      body.append(ta);
     } else {
-      disp.textContent = "No workout posted yet.";
-      disp.classList.add("empty");
+      const disp = document.createElement("div");
+      disp.className = "display";
+      const text = (data[g] || "").trim();
+      if (text) {
+        disp.textContent = text;
+      } else {
+        disp.textContent = "No workout posted yet.";
+        disp.classList.add("empty");
+      }
+      body.append(disp);
     }
+    card.append(body);
+    grid.append(card);
   });
+
+  const actions = document.getElementById("workout-actions");
+  actions.innerHTML = "";
+  if (editMode) {
+    const save = document.createElement("button");
+    save.className = "btn primary";
+    save.textContent = "Save & Post Workout";
+    save.addEventListener("click", saveWorkout);
+    actions.append(save);
+  }
 }
 
-function setupWorkout() {
-  const editBtn = document.getElementById("edit-workout");
-  const saveBtn = document.getElementById("save-workout");
-  const cancelBtn = document.getElementById("cancel-workout");
-  const flash = document.getElementById("save-flash");
-
-  function setMode(editing) {
-    document.getElementById("workout-display").style.display = editing ? "none" : "";
-    document.getElementById("workout-edit").style.display = editing ? "" : "none";
-    editBtn.style.display = editing ? "none" : "";
-  }
-
-  editBtn.addEventListener("click", () => {
-    renderWorkout(); // make sure textareas reflect saved values
-    setMode(true);
+function saveWorkout() {
+  const data = loadWorkout();
+  data.date = new Date().toLocaleDateString(undefined, {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
   });
-
-  cancelBtn.addEventListener("click", () => setMode(false));
-
-  saveBtn.addEventListener("click", () => {
-    const data = { date: new Date().toLocaleDateString(undefined, {
-      weekday: "long", month: "long", day: "numeric", year: "numeric" }) };
-    GROUPS.forEach((g) => { data[g] = document.getElementById("ta-" + g).value; });
-    saveWorkout(data);
-    renderWorkout();
-    setMode(false);
-    flash.classList.add("show");
-    setTimeout(() => flash.classList.remove("show"), 1800);
+  GROUPS.forEach((g) => {
+    const ta = document.getElementById("ta-" + g);
+    if (ta) data[g] = ta.value;
   });
-
+  localStorage.setItem(WORKOUT_KEY, JSON.stringify(data));
   renderWorkout();
-  setMode(false);
+  const flash = document.getElementById("save-flash");
+  flash.classList.add("show");
+  setTimeout(() => flash.classList.remove("show"), 1800);
+}
+
+// ---- Edit mode toggle (password gated) -----------------------------------
+function setupEditToggle() {
+  const btn = document.getElementById("edit-toggle");
+  const banner = document.getElementById("edit-banner");
+
+  btn.addEventListener("click", () => {
+    if (editMode) {
+      editMode = false;
+    } else {
+      const entry = prompt("Enter coach password to unlock edit mode:");
+      if (entry === null) return; // cancelled
+      if (entry !== EDIT_PASSWORD) {
+        alert("Incorrect password.");
+        return;
+      }
+      editMode = true;
+    }
+    btn.textContent = editMode ? "🔓 Lock Edit Mode" : "🔒 Unlock Edit Mode";
+    btn.classList.toggle("on", editMode);
+    banner.classList.toggle("show", editMode);
+    renderBoard();
+    renderWorkout();
+  });
 }
 
 // ---- Boot ----------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   setupTabs();
+  setupEditToggle();
   renderBoard();
-  setupWorkout();
+  renderWorkout();
 });

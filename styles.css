@@ -1,8 +1,10 @@
 :root {
-  --navy: #0b2545;
-  --navy-light: #13315c;
-  --red: #b22234;
-  --bg: #f4f6fa;
+  --navy: #00205b;        /* Lausanne dark blue */
+  --navy-light: #15397e;
+  --accent: #ffce00;      /* Lausanne yellow */
+  --accent-dark: #e6b800;
+  --danger: #c0392b;
+  --bg: #eef2f8;
   --card: #ffffff;
   --line: #d9dee7;
   --text: #1a2235;
@@ -29,7 +31,7 @@ header.site {
   color: #fff;
   padding: 22px 16px 0;
   text-align: center;
-  border-bottom: 5px solid var(--red);
+  border-bottom: 5px solid var(--accent);
 }
 
 header.site h1 {
@@ -66,7 +68,7 @@ header.site .sub {
   cursor: pointer;
 }
 .edit-toggle:hover { background: rgba(255, 255, 255, .22); }
-.edit-toggle.on { background: var(--red); border-color: var(--red); }
+.edit-toggle.on { background: var(--accent); border-color: var(--accent); color: var(--navy); }
 
 header.site { position: relative; }
 
@@ -95,7 +97,7 @@ header.site { position: relative; }
 
 .publish-status { font-size: 13px; font-weight: 600; color: var(--muted); }
 .publish-status.ok   { color: var(--green); }
-.publish-status.err  { color: var(--red); }
+.publish-status.err  { color: var(--danger); }
 .publish-status.warn { color: #b5851a; }
 
 .edit-input {
@@ -108,7 +110,9 @@ header.site { position: relative; }
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.edit-input:focus { outline: 2px solid var(--red); border-color: transparent; }
+.edit-input:focus { outline: 2px solid var(--navy-light); border-color: transparent; }
+.name-input { width: 160px; text-align: left; }
+@media (max-width: 720px) { .name-input { width: 120px; } }
 .lift-cell.editing .lift-val { gap: 6px; }
 
 /* ---------- Tabs ---------- */
@@ -136,7 +140,7 @@ nav.tabs button:hover { color: #fff; }
 
 nav.tabs button.active {
   color: #fff;
-  border-bottom-color: var(--red);
+  border-bottom-color: var(--accent);
 }
 
 /* ---------- Layout ---------- */
@@ -340,8 +344,8 @@ tr.g-green  .rank { color: var(--green); }
   letter-spacing: .5px;
   cursor: pointer;
 }
-.btn.primary { background: var(--red); color: #fff; }
-.btn.primary:hover { background: #8f1b29; }
+.btn.primary { background: var(--accent); color: var(--navy); }
+.btn.primary:hover { background: var(--accent-dark); }
 .btn.ghost { background: #e7ecf5; color: var(--navy); }
 .btn.ghost:hover { background: #d7deec; }
 

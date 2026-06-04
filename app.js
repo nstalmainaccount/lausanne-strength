@@ -16,8 +16,11 @@ const GROUPS = ["gold", "silver", "bronze", "green"];
 
 let editMode = false;
 let coachPassword = null;               // kept in memory only, for publishing
-// Shared state: players = { "Name": {b,s,c,bwt}, ... } overrides; workout = {...}
-let state = { players: {}, workout: {} };
+// Shared state:
+//   players = { "Name": {b,s,c,bwt}, ... }  numeric overrides (keyed by roster name)
+//   names   = { "Roster Name": "Corrected Name", ... }  typo fixes
+//   workout = { date, gold, silver, bronze, green }
+let state = { players: {}, workout: {}, names: {} };
 let storageConfigured = true;
 
 // ---- Tier definitions ----------------------------------------------------
@@ -64,14 +67,22 @@ async function loadState() {
   try {
     const res = await fetch(API_URL, { cache: "no-store" });
     const data = await res.json();
-    state = { players: data.players || {}, workout: data.workout || {} };
+    state = {
+      players: data.players || {},
+      workout: data.workout || {},
+      names: data.names || {},
+    };
     storageConfigured = data.configured !== false;
     localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
   } catch (e) {
     // Offline or API not reachable -> fall back to last known cache.
     try {
       const cached = JSON.parse(localStorage.getItem(DRAFT_KEY));
-      if (cached) state = { players: cached.players || {}, workout: cached.workout || {} };
+      if (cached) state = {
+        players: cached.players || {},
+        workout: cached.workout || {},
+        names: cached.names || {},
+      };
     } catch (_) { /* ignore */ }
   }
 }
@@ -91,6 +102,7 @@ async function publish() {
         password: coachPassword,
         players: state.players,
         workout: state.workout,
+        names: state.names,
       }),
     });
     if (res.status === 401) {
@@ -123,10 +135,12 @@ function setPublishStatus(msg, kind) {
 // ---- Player data (roster + shared overrides) ----------------------------
 function getPlayers() {
   const overrides = state.players || {};
+  const names = state.names || {};
   return PLAYERS.map((p) => {
     const o = overrides[p.name] || {};
     const merged = {
-      name: p.name,
+      key: p.name,                          // stable roster key (never changes)
+      name: names[p.name] || p.name,        // display name (typo-corrected)
       b: o.b !== undefined ? o.b : p.b,
       s: o.s !== undefined ? o.s : p.s,
       c: o.c !== undefined ? o.c : p.c,
@@ -152,6 +166,15 @@ function setOverride(name, field, value) {
   cacheLocally();
 }
 
+function setNameOverride(key, name) {
+  if (!name || name === key) {
+    delete state.names[key];   // back to the original roster name
+  } else {
+    state.names[key] = name;
+  }
+  cacheLocally();
+}
+
 // ---- Leaderboard rendering ----------------------------------------------
 function liftDisplayCell(value, bwt, tierFn) {
   const td = document.createElement("td");
@@ -174,7 +197,7 @@ function liftInputCell(player, field, bwt, tierFn) {
   input.type = "number";
   input.className = "edit-input";
   input.value = player[field] != null ? player[field] : "";
-  input.dataset.name = player.name;
+  input.dataset.name = player.key;
   input.dataset.field = field;
   input.addEventListener("change", onEditChange);
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") input.blur(); });
@@ -197,6 +220,13 @@ function onEditChange(e) {
   }
   setOverride(input.dataset.name, input.dataset.field, value);
   renderBoard(); // recompute SI, re-sort ranks, refresh all stars
+  setPublishStatus("Unpublished changes — hit Publish to share with everyone.", "warn");
+}
+
+function onNameChange(e) {
+  setNameOverride(e.target.dataset.key, e.target.value.trim());
+  // No re-render needed — a name change doesn't affect ranking, and
+  // re-rendering would steal focus while the coach is still typing.
   setPublishStatus("Unpublished changes — hit Publish to share with everyone.", "warn");
 }
 
@@ -234,7 +264,18 @@ function renderBoard() {
     const nameWrap = document.createElement("span");
     nameWrap.className = "player-name";
     if (ranked) nameWrap.append(starFor(siTier(p.si), true));
-    nameWrap.append(document.createTextNode(p.name));
+    if (editMode) {
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.className = "edit-input name-input";
+      nameInput.value = p.name;
+      nameInput.dataset.key = p.key;
+      nameInput.addEventListener("change", onNameChange);
+      nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") nameInput.blur(); });
+      nameWrap.append(nameInput);
+    } else {
+      nameWrap.append(document.createTextNode(p.name));
+    }
     tdName.append(nameWrap);
     tr.append(tdName);
 

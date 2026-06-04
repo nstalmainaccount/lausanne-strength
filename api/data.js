@@ -21,7 +21,7 @@ const KV_TOKEN =
   process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
 const EDIT_PASSWORD = process.env.EDIT_PASSWORD || "football123";
 const STATE_KEY = "lfwr-state-2026";
-const EMPTY = { players: {}, workout: {} };
+const EMPTY = { players: {}, workout: {}, names: {} };
 
 async function redis(command) {
   const res = await fetch(KV_URL, {
@@ -45,6 +45,7 @@ async function readState() {
     return {
       players: parsed.players || {},
       workout: parsed.workout || {},
+      names: parsed.names || {},
     };
   } catch (e) {
     return { ...EMPTY };
@@ -95,6 +96,7 @@ module.exports = async (req, res) => {
     const state = {
       players: body.players && typeof body.players === "object" ? body.players : {},
       workout: body.workout && typeof body.workout === "object" ? body.workout : {},
+      names: body.names && typeof body.names === "object" ? body.names : {},
     };
 
     try {

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lance Fein Glazing System</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔</text></svg>" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <span class="brand"><span class="mark">⚔</span> LFGS <span style="font-weight:400;font-size:15px;opacity:.9">Lance Fein Glazing System</span></span>
+    <a class="navlink" href="#builder">Builder</a>
+    <a class="navlink" href="#welcome">How It Works</a>
+    <a class="navlink" href="demo.html">Live Demo</a>
+    <a class="navlink" href="widget.html" target="_blank">Open Widget</a>
+  </nav>
+
+  <div class="subnav">
+    <a href="#welcome">Welcome</a>
+    <a href="#builder">Build a System</a>
+    <a href="demo.html">Demo</a>
+  </div>
+
+  <div class="container">
+    <h1 class="page-title" id="welcome">Welcome</h1>
+
+    <div class="accordion">
+      <details open>
+        <summary>Welcome to the Lance Fein Glazing System in Beta</summary>
+        <div class="pane">
+          <p>The Lance Fein Glazing System is a <b>white-label comment curation system</b>. Build a
+            Glazing System below, then drop it into any website as a popup — just like sharing a
+            Google Form link. Visitors rate comments, products, or services on a Likert scale of
+            <b>Lances</b>, from <b>+ Five Lances</b> down to <b>− Five Lances</b>, with
+            <b>Zero Lances</b> being perfectly neutral.</p>
+          <p>Why "glazing"? Because slathering praise (or hate) on everything is easy. The Lance Fein
+            Glazing System rewards restraint — and makes heavy glazing cost you.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Lance Score</summary>
+        <div class="pane">
+          <p>Your Lance Score is made up of the following criteria:</p>
+          <ol>
+            <li>All your <b>Persona's</b> accumulated Lances (across any sites using a Glazing System).</li>
+            <li>Behavioral data used to verify and establish user credibility.</li>
+            <li>Proprietary formulas using comment data, glazing data, and time spent on site.</li>
+          </ol>
+          <p>Your Lance Score is in many ways the on-line/digital equivalent of your real-world credit
+            score. Just as companies such as Equifax and Experian use various criteria to determine how
+            reliable you are as a consumer of credit, the Lance Fein Glazing System uses your Lance
+            Score to determine how reliable you are as an author and consumer of digital commentary.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Glazing Basics</summary>
+        <div class="pane">
+          <p>Before you score a comment, the <b>author is invisible to you</b> — you instead see a
+            GLAZE FOR MORE ® box. GLAZE FOR MORE indicates that in order to get further information
+            about this author, you must score the comment first.</p>
+          <div class="scale-figure">GLAZE FOR MORE ® ▾</div>
+          <p>When you click on GLAZE FOR MORE, a drop-down with scoring options appears:</p>
+          <ul class="scale-list">
+            <li>+ Five Lances</li>
+            <li>+ Four Lances</li>
+            <li>+ Three Lances</li>
+            <li>+ Two Lances</li>
+            <li>+ One Lance</li>
+            <li>Zero Lances (Neutral)</li>
+            <li>− One Lance</li>
+            <li>− Two Lances</li>
+            <li>− Three Lances</li>
+            <li>− Four Lances</li>
+            <li>− Five Lances</li>
+          </ul>
+          <p>Select the score you wish to give the comment and press the red Save button. The ribbon
+            then reveals the author's name, their Lance Score, the specific score you gave, the total
+            score for the comment, and the total amount of replies in the thread.</p>
+          <p><b>The credit mechanic — this is the whole point:</b></p>
+          <ul>
+            <li>Score <b>Zero Lances, One Lance, or Negative One Lance</b> (a measured, honest take)
+              → you <b>earn One Lance Point</b> toward your Lance Credit.</li>
+            <li>Score anything <b>over + One Lance or under − One Lance</b> (heavy glazing)
+              → you <b>lose One Lance Point</b>.</li>
+            <li>Either way, the comment's author receives your Lances toward their Lance Score.</li>
+          </ul>
+          <p>Every comment you score moves your Lance Credit. Rate generously often; rate extremely at
+            your own expense.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Personas</summary>
+        <div class="pane">
+          <p>Users may create up to <b>Three Personas</b> to uniquely identify their participation in a
+            Glazing System.</p>
+          <p>A Persona is always displayed within a distinctive button along with their Lance Score
+            badge. Each Persona may score comments and post messages independently of your other
+            Personas — and each carries its own Lance Credit.</p>
+        </div>
+      </details>
+    </div>
+
+    <h1 class="page-title" id="builder">Build Your Glazing System</h1>
+    <p style="margin-top:-8px;color:var(--muted)">Configure it, forge it, and get a link + embed
+      snippet you can white-label into anyone's website. The entire configuration travels inside the
+      link — nothing to host.</p>
+
+    <div class="builder-grid">
+      <div>
+        <div class="field">
+          <label for="f-name">System name (your white label)</label>
+          <input type="text" id="f-name" value="Lance Fein Glazing System" maxlength="60" />
+          <div class="hint">Shown in the widget header, e.g. “Donut Reviews by Dave”.</div>
+        </div>
+
+        <div class="field">
+          <label for="f-items">What are you curating?</label>
+          <select id="f-items">
+            <option value="comments" selected>Comments</option>
+            <option value="products">Products</option>
+            <option value="services">Services</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="f-color">Brand color</label>
+          <input type="color" id="f-color" value="#3d7be8" />
+        </div>
+
+        <div class="field">
+          <label for="f-scale">Lance scale</label>
+          <select id="f-scale">
+            <option value="5" selected>Up to Five Lances (± Five)</option>
+            <option value="3">Up to Three Lances (± Three)</option>
+            <option value="2">Up to Two Lances (± Two)</option>
+          </select>
+          <div class="hint">Whatever the scale, only Zero / ± One Lance earns Lance Points.</div>
+        </div>
+
+        <div class="field">
+          <label for="f-seed">Seed comments (optional)</label>
+          <textarea id="f-seed" placeholder="One per line:  Author | Starting Lance Score | Comment text&#10;Example:&#10;DoughBoy | 7 | The maple glaze here is criminally underrated."></textarea>
+          <div class="hint">Format: <code>Author | Starting Lance Score | Text</code>. Leave blank for the defaults.</div>
+        </div>
+
+        <button class="btn btn-red" id="f-build">⚔ Forge My Glazing System</button>
+      </div>
+
+      <div id="output" style="display:none">
+        <div class="output-block">
+          <h3>Direct link (share like a Google Form)</h3>
+          <input type="text" id="o-link" readonly />
+          <div class="copy-row">
+            <button class="btn btn-ghost" data-copy="o-link">Copy link</button>
+            <a id="o-open" href="#" target="_blank" class="btn btn-ghost" style="text-decoration:none">Open ↗</a>
+            <span class="copied-note" id="note-o-link"></span>
+          </div>
+        </div>
+
+        <div class="output-block">
+          <h3>Popup embed snippet (paste into any website)</h3>
+          <textarea id="o-embed" readonly></textarea>
+          <div class="copy-row">
+            <button class="btn btn-ghost" data-copy="o-embed">Copy snippet</button>
+            <span class="copied-note" id="note-o-embed"></span>
+          </div>
+        </div>
+
+        <div class="output-block">
+          <h3>Live preview</h3>
+          <iframe class="preview-frame" id="o-preview" title="Glazing System preview"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>About · Terms · Privacy · Cookies · Contact</span>
+    <span>© 2026 Lance Fein Glazing System, LLC (Beta) ⚔</span>
+  </footer>
+
+  <script src="lance.js"></script>
+  <script src="builder.js"></script>
+</body>
+</html>
